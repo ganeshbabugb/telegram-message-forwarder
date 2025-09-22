@@ -296,17 +296,33 @@ func containsKeywords(text string, keywords []string) bool {
 	return false
 }
 
-func loadConfig(file string) (*Config, error) {
-	data, err := os.ReadFile(file)
+func loadConfig(path string) (*Config, error) {
+	configEnv := os.Getenv("CONFIG_JSON")
+	if configEnv != "" {
+		var cfg Config
+		if err := json.Unmarshal([]byte(configEnv), &cfg); err != nil {
+			return nil, fmt.Errorf("invalid CONFIG_JSON: %w", err)
+		}
+
+		// Write back to config.json for compatibility
+		data, _ := json.MarshalIndent(cfg, "", "  ")
+		_ = os.WriteFile(path, data, 0644)
+
+		return &cfg, nil
+	}
+
+	// Fallback → load from config.json file
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	var config Config
-	if err := json.Unmarshal(data, &config); err != nil {
+	var cfg Config
+	if err := json.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
-	return &config, nil
+
+	return &cfg, nil
 }
 
 func findChats(tdlibClient *client.Client, config *Config) ([]SourceChannelInfo, []ForwardDestinationInfo, error) {
