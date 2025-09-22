@@ -298,6 +298,7 @@ func containsKeywords(text string, keywords []string) bool {
 
 func loadConfig(path string) (*Config, error) {
 	configEnv := os.Getenv("CONFIG_JSON")
+	logger.Info("CONFIG:", "CONFIG_JSON: ", configEnv)
 	if configEnv != "" {
 		var cfg Config
 		if err := json.Unmarshal([]byte(configEnv), &cfg); err != nil {
