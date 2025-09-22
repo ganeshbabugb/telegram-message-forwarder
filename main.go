@@ -26,6 +26,14 @@ type Config struct {
 	ForwardTo      []string            `json:"forwardTo"`
 }
 
+// IsValid to ensure configuration has some data.
+func (c *Config) IsValid() bool {
+	if len(c.ForwardTo) == 0 || len(c.SourceChannels) == 0 {
+		return false
+	}
+	return true
+}
+
 // SourceChannelInfo holds details for a Telegram source channel.
 type SourceChannelInfo struct {
 	ChatID      int64
@@ -120,6 +128,10 @@ func main() {
 	config, err := loadConfig("config.json")
 	if err != nil {
 		logger.Error("Failed to load configuration", "error", err)
+		os.Exit(1)
+	}
+	if !config.IsValid() {
+		logger.Error("Bad Configuration")
 		os.Exit(1)
 	}
 	logger.Info("Configuration loaded successfully")
