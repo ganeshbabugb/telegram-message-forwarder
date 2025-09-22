@@ -184,6 +184,7 @@ func main() {
 
 	go func() {
 		http.HandleFunc("/ws", handleWebSocketConnection)
+		http.HandleFunc("/health", handleHealthCheck)
 		http.Handle("/", http.FileServer(http.Dir("./static")))
 		logger.Info("Web server started", "port", 8080)
 		if err := http.ListenAndServe(":8080", nil); err != nil {
@@ -298,7 +299,6 @@ func containsKeywords(text string, keywords []string) bool {
 
 func loadConfig(path string) (*Config, error) {
 	configEnv := os.Getenv("CONFIG_JSON")
-	logger.Info("CONFIG:", "CONFIG_JSON: ", configEnv)
 	if configEnv != "" {
 		var cfg Config
 		if err := json.Unmarshal([]byte(configEnv), &cfg); err != nil {
@@ -370,4 +370,9 @@ func findChats(tdlibClient *client.Client, config *Config) ([]SourceChannelInfo,
 		}
 	}
 	return sourceChannels, forwardDestinations, nil
+}
+
+func handleHealthCheck(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
