@@ -79,10 +79,8 @@
         }
 
         function setupWebSocket() {
-            // The previous logic for setting the protocol based on window.location.protocol was correct,
-            // but the reported error indicates a failure to establish an insecure connection from a secure page.
-            // This fix explicitly uses the secure wss protocol to resolve the issue.
-            const ws = new WebSocket(`ws://${window.location.host}/ws`);
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const ws = new WebSocket(`${protocol}://${window.location.host}/ws`);
 
             ws.onopen = () => {
                 console.log("WebSocket connection established.");
