@@ -47,6 +47,7 @@ WORKDIR /app
 
 COPY --from=go-builder /src/app .
 COPY --from=go-builder /src/config.json .
+COPY --from=go-builder /usr/local/lib/libtdjson.so /usr/local/lib/
 
 EXPOSE 8080
 
