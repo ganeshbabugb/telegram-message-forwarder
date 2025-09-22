@@ -48,4 +48,6 @@ WORKDIR /app
 COPY --from=go-builder /src/app .
 COPY --from=go-builder /src/config.json .
 
+EXPOSE 8080
+
 CMD ["./app"]
