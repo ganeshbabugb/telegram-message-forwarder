@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Login</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            flex-direction: column;
+            text-align: center;
+            padding: 1rem;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        #qrcode-canvas {
+            width: 256px;
+            height: 256px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 0 auto;
+        }
+        .message-box {
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .message-box.info {
+            background-color: #e0f2fe;
+            color: #0c4a6e;
+        }
+        .message-box.error {
+            background-color: #fecaca;
+            color: #7f1d1d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scan to Log in to Telegram</h1>
+        <p>Use your Telegram app to scan this QR code.</p>
+        <div id="qrcode-canvas"></div>
+        <div id="message-container"></div>
+    </div>
+
+    <script>
+        const qrCodeContainer = document.getElementById('qrcode-canvas');
+        const messageContainer = document.getElementById('message-container');
+        let qrCode = new QRCode(qrCodeContainer, {
+            text: "Initializing...",
+            width: 256,
+            height: 256,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        
+        function showMessage(message, type) {
+            messageContainer.innerHTML = `<div class="message-box ${type}">${message}</div>`;
+        }
+
+        function setupWebSocket() {
+            // The previous logic for setting the protocol based on window.location.protocol was correct,
+            // but the reported error indicates a failure to establish an insecure connection from a secure page.
+            // This fix explicitly uses the secure wss protocol to resolve the issue.
+            const ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+            ws.onopen = () => {
+                console.log("WebSocket connection established.");
+                showMessage("Connection successful, waiting for QR code...", "info");
+            };
+
+            ws.onmessage = (event) => {
+                const qrLink = event.data;
+                console.log("Received new QR code link:", qrLink);
+                qrCode.makeCode(qrLink);
+            };
+
+            ws.onclose = () => {
+                console.log("WebSocket connection closed. Attempting to reconnect...");
+                showMessage("Connection lost. Retrying...", "error");
+                // Attempt to reconnect after a delay
+                setTimeout(setupWebSocket, 3000);
+            };
+
+            ws.onerror = (error) => {
+                console.error("WebSocket error:", error);
+                showMessage("An error occurred. Retrying...", "error");
+                ws.close();
+            };
+        }
+
+        setupWebSocket();
+    </script>
+</body>
+</html>

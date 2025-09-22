@@ -1,0 +1,12 @@
+{
+  "sourceChannels": {
+    "EchoBot": [
+      "One",
+      "Two",
+      "Three"
+    ]
+  },
+  "forwardTo": [
+    "BoogieOne"
+  ]
+}
